@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07090e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>SUIT MESH // MOBILE BLE &amp; WI-FI CONTROL HUB</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #07090e;
+    --card: rgba(16, 20, 32, 0.92);
+    --card-elevated: rgba(22, 28, 44, 0.95);
+    --border: rgba(0, 240, 255, 0.28);
+    --border-dim: rgba(255, 255, 255, 0.10);
+    --cyan: #00f0ff;
+    --cyan-glow: rgba(0, 240, 255, 0.4);
+    --red: #ff2a55;
+    --red-glow: rgba(255, 42, 85, 0.5);
+    --emerald: #00ff9d;
+    --emerald-glow: rgba(0, 255, 157, 0.4);
+    --amber: #ffb700;
+    --amber-glow: rgba(255, 183, 0, 0.4);
+    --purple: #b026ff;
+    --purple-glow: rgba(176, 38, 255, 0.45);
+    --text: #f0f4fc;
+    --text-dim: #8c9bae;
+    --radius: 14px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.11), transparent 60%),
+      radial-gradient(circle at 100% 100%, rgba(255, 42, 85, 0.08), transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+    padding-top: calc(var(--safe-top) + 8px);
+    padding-left: calc(var(--safe-left) + 12px);
+    padding-right: calc(var(--safe-right) + 12px);
+    padding-bottom: calc(var(--safe-bottom) + 92px);
+  }
+
+  button, input, select {
+    touch-action: manipulation;
+    font: inherit;
+  }
+
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* =========================================================================
+     STICKY MOBILE-FIRST TOP BAR & CONNECTION HERO
+     ========================================================================= */
+  header {
+    position: sticky;
+    top: calc(var(--safe-top) + 6px);
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(11, 15, 24, 0.92);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65);
+  }
+
+  .header-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--cyan), var(--red));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 18px;
+    color: #000;
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+
+  h1 {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .subtitle {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.6px;
+  }
+
+  .network-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    background: rgba(0, 240, 255, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 10px var(--amber);
+  }
+
+  .dot.online {
+    background: var(--emerald);
+    box-shadow: 0 0 10px var(--emerald);
+    animation: pulse 1.8s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  .header-action-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .btn-ble-connect {
+    min-height: 46px;
+    background: linear-gradient(135deg, #00ff9d, #00a86b);
+    border: 1px solid var(--emerald);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 4px 18px var(--emerald-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.12s, box-shadow 0.2s;
+  }
+
+  .btn-ble-connect.connected {
+    background: linear-gradient(135deg, #b026ff, #5a189a);
+    border-color: var(--purple);
+    color: #fff;
+    box-shadow: 0 4px 18px var(--purple-glow);
+  }
+
+  .btn-ble-connect:active {
+    transform: scale(0.97);
+  }
+
+  .btn-quick-arm {
+    min-height: 46px;
+    background: rgba(255, 42, 85, 0.16);
+    border: 1px solid var(--red);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #ff8fa3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .btn-quick-arm.armed {
+    background: linear-gradient(135deg, #ff2a55, #b5002a);
+    color: #fff;
+    box-shadow: 0 0 16px var(--red-glow);
+  }
+
+  .btn-quick-arm:active {
+    transform: scale(0.96);
+  }
+
+  /* =========================================================================
+     ALWAYS-VISIBLE 3-TIER SUIT WAVE ORB VISUALIZER BAR
+     ========================================================================= */
+  .suit-visualizer-card {
+    background: var(--card);
+    border: 1px solid var(--border-dim);
+    border-radius: var(--radius);
+    padding: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .vis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+
+  .vis-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .suit-visualizer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px 8px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--border-dim);
+    border-radius: 12px;
+  }
+
+  .tier-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 5px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .tier-orb {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    transition: transform 0.05s linear;
+  }
+
+  .tier-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+
+  .tier-sub {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-feature-settings: 'tnum';
+  }
+
+  .mesh-bar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  @media (min-width: 540px) {
+    .mesh-bar {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .mesh-node-tag {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 6px 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* =========================================================================
+     MOBILE TAB VIEW MANAGEMENT & DESKTOP 2-COLUMN GRID
+     ========================================================================= */
+  .main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  @media (min-width: 820px) {
+    body {
+      padding-bottom: 32px;
+    }
+    header {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-action-row {
+      width: auto;
+      display: flex;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: start;
+      gap: 16px;
+    }
+    .mobile-tab-section {
+      display: flex !important;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .bottom-nav {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 819px) {
+    .mobile-tab-section {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mobile-tab-section.active-tab {
+      display: flex;
+    }
+  }
+
+  /* =========================================================================
+     CARDS, PILLS, BUTTONS & TOUCH CONTROLS
+     ========================================================================= */
+  .card {
+    background: var(--card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-dim);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-dim);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .status-pill {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .pill-green { background: rgba(0, 255, 157, 0.14); color: var(--emerald); border: 1px solid rgba(0, 255, 157, 0.35); }
+  .pill-red   { background: rgba(255, 42, 85, 0.15); color: var(--red); border: 1px solid rgba(255, 42, 85, 0.38); }
+  .pill-blue  { background: rgba(0, 240, 255, 0.14); color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.35); }
+  .pill-amber { background: rgba(255, 183, 0, 0.14); color: var(--amber); border: 1px solid rgba(255, 183, 0, 0.35); }
+  .pill-purple { background: rgba(176, 38, 255, 0.18); color: #e09eff; border: 1px solid rgba(176, 38, 255, 0.5); }
+
+  /* Touch-Friendly Button Grids (min 46px height for mobile thumbs) */
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .pattern-grid.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pattern-grid.cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 440px) {
+    .pattern-grid.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (max-width: 370px) {
+    .pattern-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .pattern-btn {
+    min-height: 46px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dim);
+    border-radius: 10px;
+    padding: 8px 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transition: all 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .pattern-btn:active {
+    transform: scale(0.96);
+  }
+
+  .pattern-btn.active {
+    background: rgba(0, 240, 255, 0.20);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+
+  .pattern-btn.active-red {
+    background: rgba(255, 42, 85, 0.22);
+    border-color: var(--red);
+    color: #ff8fa3;
+    box-shadow: 0 0 14px var(--red-glow);
+  }
+
+  /* Touch-Friendly Color Swatches (44x44px minimum hit targets) */
+  .color-presets {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin: 8px 0 4px 0;
+  }
+
+  .swatch {
+    width: 100%;
+    height: 42px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    cursor: pointer;
+    transition: transform 0.14s, border-color 0.14s;
+  }
+
+  .swatch:active, .swatch.active {
+    transform: scale(1.08);
+    border-color: #fff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+  }
+
+  .color-picker-input {
+    width: 100%;
+    height: 42px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  /* =========================================================================
+     MODERN RANGE SLIDERS (44px Touch Hit Area + Active Progress Fill)
+     ========================================================================= */
+  .slider-group {
+    margin: 12px 0;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    gap: 8px;
+  }
+
+  .slider-val-badge {
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--cyan);
+    font-feature-settings: 'tnum';
+    background: rgba(0, 240, 255, 0.10);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 240, 255, 0.22);
+  }
+
+  input[type="range"] {
+    --slider-track-size: 0.5rem;
+    --slider-thumb-size: 1.6rem;
+    --slider-track-radius: 999px;
+    --slider-thumb-radius: 50%;
+    --slider-track-color: rgba(255, 255, 255, 0.14);
+    --slider-fill-color: var(--cyan);
+    --slider-thumb-color: #ffffff;
+    --slider-progress: 50%;
+
+    -webkit-appearance: none;
+    appearance: none;
+    inline-size: 100%;
+    block-size: 2.75rem; /* 44px generous mobile touch target */
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"].slider-red {
+    --slider-fill-color: var(--red);
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    block-size: var(--slider-track-size);
+    border: 0;
+    border-radius: var(--slider-track-radius);
+    background: linear-gradient(
+      to right,
+      var(--slider-fill-color) var(--slider-progress),
+      var(--slider-track-color) var(--slider-progress)
+    );
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    inline-size: var(--slider-thumb-size);
+    block-size: var(--slider-thumb-size);
+    margin-block-start: calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2);
+    border: 3px solid var(--slider-fill-color);
+    border-radius: var(--slider-thumb-radius);
+    background: var(--slider-thumb-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.65), 0 0 12px var(--cyan-glow);
+    transition: transform 0.1s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:active {
+    transform: scale(1.18);
+  }
+
+  input[type="range"]::-moz-range-track {
+    block-size: var(--slider-track-size);
+    border: 0;
+    border-radius: var(--slider-track-radius);
+    background: var(--slider-track-color);
+  }
+
+  input[type="range"]::-moz-range-progress {
+    block-size: var(--slider-track-size);
+    border-radius: var(--slider-track-radius);
+    background: var(--slider-fill-color);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    inline-size: var(--slider-thumb-size);
+    block-size: var(--slider-thumb-size);
+    border: 3px solid var(--slider-fill-color);
+    border-radius: var(--slider-thumb-radius);
+    background: var(--slider-thumb-color);
+  }
+
+  input[type="range"]:focus-visible {
+    outline: 2px solid var(--slider-fill-color);
+    outline-offset: 2px;
+  }
+
+  .apply-btn {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 10px;
+    background: linear-gradient(90deg, var(--cyan), #0077b6);
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    color: #000;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 4px 16px var(--cyan-glow);
+  }
+
+  .apply-btn:active {
+    transform: scale(0.98);
+  }
+
+  /* =========================================================================
+     TACTICAL COMMAND DECK & TELEMETRY
+     ========================================================================= */
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .btn {
+    min-height: 58px;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 10px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: transform 0.12s, box-shadow 0.2s;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .btn:active {
+    transform: scale(0.96);
+  }
+
+  .btn-deploy { background: linear-gradient(135deg, #00b4d8, #0077b6); border: 1px solid var(--cyan); box-shadow: 0 4px 16px var(--cyan-glow); }
+  .btn-fold   { background: linear-gradient(135deg, #2b2d42, #1f2232); border: 1px solid rgba(255, 255, 255, 0.22); }
+  .btn-zero   { background: linear-gradient(135deg, #00a86b, #007f5f); border: 1px solid var(--emerald); box-shadow: 0 4px 16px var(--emerald-glow); }
+  .btn-fire {
+    background: linear-gradient(135deg, #d90429, #9a031e);
+    border: 1px solid var(--red);
+    box-shadow: 0 4px 20px var(--red-glow);
+    grid-column: span 2;
+    min-height: 64px;
+    font-size: 14px;
+    touch-action: none;
+  }
+  .btn-fire.firing-active {
+    background: linear-gradient(135deg, #ff4d6d, #d90429);
+    transform: scale(0.98);
+    box-shadow: 0 0 28px rgba(255, 42, 85, 0.95);
+  }
+  .btn-calib {
+    background: rgba(255, 183, 0, 0.12);
+    color: var(--amber);
+    border: 1px solid rgba(255, 183, 0, 0.35);
+    grid-column: span 2;
+    min-height: 46px;
+    font-size: 11px;
+  }
+
+  .battery-container { margin: 8px 0 12px 0; }
+  .battery-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+  .battery-val { font-weight: 800; font-size: 13px; }
+  .battery-bar-bg { width: 100%; height: 10px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); }
+  .battery-bar-fill { height: 100%; width: 0%; border-radius: 5px; transition: width 0.4s, background-color 0.4s; }
+
+  .angle-display { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .angle-box { background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-dim); border-radius: 10px; padding: 10px 8px; text-align: center; }
+  .angle-num { font-size: 20px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 12px var(--cyan-glow); font-feature-settings: 'tnum'; }
+  .angle-sub { font-size: 9px; color: var(--text-dim); margin-top: 2px; }
+
+  .telemetry-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; font-size: 12px; }
+  .telem-label { color: var(--text-dim); }
+  .telem-val { font-weight: 700; color: #fff; font-feature-settings: 'tnum'; }
+
+  /* Wireless Mode Switch Card */
+  .wireless-banner {
+    background: linear-gradient(135deg, rgba(176, 38, 255, 0.14), rgba(0, 240, 255, 0.10));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wireless-toggle-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid var(--border-dim);
+  }
+
+  .w-pill {
+    min-height: 44px;
+    padding: 8px 10px;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    color: var(--text-dim);
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.18s;
+  }
+
+  .w-pill.active-ble {
+    background: rgba(176, 38, 255, 0.28);
+    color: #e5b8ff;
+    border-color: var(--purple);
+    box-shadow: 0 0 12px var(--purple-glow);
+  }
+
+  .w-pill.active-wifi {
+    background: rgba(0, 240, 255, 0.22);
+    color: var(--cyan);
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan-glow);
+  }
+
+  /* =========================================================================
+     STICKY MOBILE BOTTOM NAVIGATION BAR
+     ========================================================================= */
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 950;
+    background: rgba(10, 14, 22, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding-top: 6px;
+    padding-bottom: calc(var(--safe-bottom) + 6px);
+    padding-left: calc(var(--safe-left) + 8px);
+    padding-right: calc(var(--safe-right) + 8px);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.7);
+  }
+
+  .nav-tab-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    min-height: 50px;
+    padding: 6px 4px;
+    color: var(--text-dim);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .nav-tab-icon {
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  .nav-tab-btn.active {
+    background: rgba(0, 240, 255, 0.14);
+    border-color: rgba(0, 240, 255, 0.35);
+    color: var(--cyan);
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.2);
+  }
+
+  /* =========================================================================
+     FULLSCREEN MOBILE-FRIENDLY RC COCKPIT
+     ========================================================================= */
+  #rcCockpit {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    z-index: 9999;
+    background-color: #06080d;
+    background-image:
+      radial-gradient(circle at 50% 15%, rgba(0, 240, 255, 0.13), transparent 55%),
+      radial-gradient(circle at 85% 85%, rgba(255, 42, 85, 0.09), transparent 45%);
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-top: calc(var(--safe-top) + 8px);
+    padding-bottom: calc(var(--safe-bottom) + 12px);
+    padding-left: calc(var(--safe-left) + 10px);
+    padding-right: calc(var(--safe-right) + 10px);
+    gap: 8px;
+  }
+
+  #rcCockpit.active {
+    display: flex;
+  }
+
+  .cockpit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(14, 18, 28, 0.92);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    flex-shrink: 0;
+  }
+
+  .btn-close-rc {
+    min-height: 40px;
+    background: rgba(255, 42, 85, 0.18);
+    border: 1px solid var(--red);
+    color: #ff8fa3;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .cockpit-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    flex: 1;
+  }
+
+  @media (min-width: 768px) {
+    .cockpit-body {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+      gap: 14px;
+    }
+  }
+
+  .mode-switch-card, .radar-card, .joystick-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mode-toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .mode-tab {
+    min-height: 42px;
+    padding: 8px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    color: var(--text-dim);
+  }
+
+  .mode-tab.active.tracking {
+    background: rgba(0, 255, 157, 0.25);
+    color: var(--emerald);
+    border: 1px solid var(--emerald);
+  }
+
+  .mode-tab.active.rc {
+    background: rgba(0, 240, 255, 0.25);
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+  }
+
+  .reticle-box {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    height: 115px;
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 6px 0 2px 0;
+    cursor: crosshair;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .reticle-axis-x { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 240, 255, 0.3); }
+  .reticle-axis-y { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: rgba(0, 240, 255, 0.3); }
+  .reticle-crosshair {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2.5px solid var(--red);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 37%;
+    box-shadow: 0 0 14px var(--red-glow);
+    pointer-events: none;
+  }
+
+  .joystick-zone {
+    position: relative;
+    width: 185px;
+    height: 185px;
+    margin: 6px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .joystick-base {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(20, 28, 45, 0.95), rgba(7, 9, 14, 0.98));
+    border: 2px solid var(--cyan);
+    box-shadow: 0 0 24px var(--cyan-glow);
+    pointer-events: none;
+  }
+
+  .joystick-thumb {
+    position: absolute;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #00f0ff, #005f73);
+    border: 2.5px solid #fff;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #000;
+    font-weight: 900;
+  }
+
+  .cockpit-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .btn-cockpit {
+    min-height: 46px;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 6px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .btn-cockpit-deploy { background: linear-gradient(135deg, #00b4d8, #0077b6); border: 1px solid var(--cyan); }
+  .btn-cockpit-fold   { background: linear-gradient(135deg, #2b2d42, #1f2232); border: 1px solid rgba(255, 255, 255, 0.2); }
+  .btn-cockpit-zero   { background: linear-gradient(135deg, #00a86b, #007f5f); border: 1px solid var(--emerald); }
+  .btn-cockpit-center { background: linear-gradient(135deg, #5a189a, #3c096c); border: 1px solid var(--purple); }
+  .btn-cockpit-fire {
+    grid-column: span 2;
+    min-height: 54px;
+    background: linear-gradient(135deg, #d90429, #9a031e);
+    border: 1px solid var(--red);
+    font-size: 13px;
+    touch-action: none;
+  }
+
+  #toast {
+    position: fixed;
+    bottom: calc(var(--safe-bottom) + 76px);
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: rgba(0, 240, 255, 0.96);
+    color: #000;
+    font-weight: 800;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    box-shadow: 0 6px 24px rgba(0, 240, 255, 0.5);
+    transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.4, 1);
+    z-index: 10000;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  #toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- STICKY MOBILE HEADER -->
+  <header>
+    <div class="header-top-row">
+      <div class="title-group">
+        <div class="logo-icon">&#9670;</div>
+        <div>
+          <h1>Suit Mesh Hub</h1>
+          <div class="subtitle">MOBILE WEB BLUETOOTH &amp; WI-FI STUDIO</div>
+        </div>
+      </div>
+      <div class="network-badge">
+        <div class="dot" id="connDot"></div>
+        <span id="headerStatus">BLE STANDBY</span>
+      </div>
+    </div>
+    <div class="header-action-row">
+      <button type="button" class="btn-ble-connect" id="btnBleConnect" onclick="toggleBleConnection()">
+        <span id="btnBleText">&#128225; TAP TO CONNECT SUIT BLE</span>
+      </button>
+      <button type="button" class="btn-quick-arm" id="btnQuickArm" onclick="toggleQuickArmedPreview()">
+        <span id="btnQuickArmText">&#128680; TEST ARMED</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- LIVE 3-TIER SUIT WAVE PREVIEW (ALWAYS VISIBLE AT TOP) -->
+  <div class="suit-visualizer-card">
+    <div class="vis-header">
+      <span class="vis-title">&#127754; Live 3-Tier Suit Mesh Preview</span>
+      <span class="status-pill pill-blue" id="suitLedActivePill">LOW&rarr;HIGH WAVE</span>
+    </div>
+    <div class="suit-visualizer">
+      <div class="tier-node">
+        <div class="tier-orb" id="orbLow"></div>
+        <div class="tier-label">1. Webshooter</div>
+        <div class="tier-sub" id="orbLowSub">LOW (0%)</div>
+      </div>
+      <div class="tier-node">
+        <div class="tier-orb" id="orbMid"></div>
+        <div class="tier-label">2. Vest LED</div>
+        <div class="tier-sub" id="orbMidSub">MID (-30%)</div>
+      </div>
+      <div class="tier-node">
+        <div class="tier-orb" id="orbHigh"></div>
+        <div class="tier-label">3. Gimbal</div>
+        <div class="tier-sub" id="orbHighSub">HIGH (-60%)</div>
+      </div>
+    </div>
+    <div class="mesh-bar">
+      <div class="mesh-node-tag pill-amber" id="meshWsTag">&#9675; 1. WS (LOW)</div>
+      <div class="mesh-node-tag pill-amber" id="meshChestTag">&#9675; 2. CHEST (MID)</div>
+      <div class="mesh-node-tag pill-amber" id="meshBackTag">&#9675; 2. BACK (MID)</div>
+      <div class="mesh-node-tag pill-amber" id="meshGimbalTag">&#9675; 3. GIMBAL (HIGH)</div>
+    </div>
+  </div>
+
+  <!-- MAIN RESPONSIVE CONTENT GRID -->
+  <div class="main-grid">
+
+    <!-- =====================================================================
+         TAB 1 (LEFT COLUMN ON DESKTOP): LED ANIMATION STUDIO
+         ===================================================================== -->
+    <div class="mobile-tab-section active-tab" id="tabSectionLeds">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">&#128161; Suit LED &amp; Wave Studio</div>
+          <span style="font-size:10px;color:var(--text-dim);font-weight:700;">INSTANT BLE SYNC</span>
+        </div>
+
+        <!-- App Mode Override / Live Preview -->
+        <div class="slider-group" style="margin-top:0;">
+          <div class="slider-header">
+            <span>Suit State Override</span>
+            <span id="overrideModeLbl" style="color:var(--emerald);font-weight:800;font-size:11px;">AUTO (EITHER ARMED)</span>
+          </div>
+          <div class="pattern-grid cols-4">
+            <button type="button" class="pattern-btn active" id="ovBtn255" onclick="setOverrideState(255)">Auto Suit</button>
+            <button type="button" class="pattern-btn" id="ovBtn0" onclick="setOverrideState(0)">Force Idle</button>
+            <button type="button" class="pattern-btn" id="ovBtn1" onclick="setOverrideState(1)">Force Armed</button>
+            <button type="button" class="pattern-btn" id="ovBtn2" onclick="setOverrideState(2)">Force Fire</button>
+          </div>
+        </div>
+
+        <!-- One-Tap Complete Suit Scene Presets -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>One-Tap Suit Scene Presets</span>
+            <span style="color:var(--text-dim);font-size:10px;">FULL PROFILE</span>
+          </div>
+          <div class="pattern-grid">
+            <button type="button" class="pattern-btn" onclick="applySuitPreset('default_wave')">&#127754; Low&rarr;High Wave</button>
+            <button type="button" class="pattern-btn" onclick="applySuitPreset('tactical_red')">&#128680; Tactical Ops</button>
+            <button type="button" class="pattern-btn" onclick="applySuitPreset('iron_spider')">&#9889; Iron Spider</button>
+            <button type="button" class="pattern-btn" onclick="applySuitPreset('symbiote')">&#128302; Symbiote</button>
+            <button type="button" class="pattern-btn" onclick="applySuitPreset('cyber_rainbow')">&#127752; Cyber Flow</button>
+            <button type="button" class="pattern-btn" onclick="applySuitPreset('stealth')">&#128065; Stealth Off</button>
+          </div>
+        </div>
+
+        <!-- Traveling Wave Direction & Spread (Webshooter Low -> Vest Mid -> Gimbal High) -->
+        <div class="slider-group" style="background:rgba(0,240,255,0.04);border:1px solid var(--border-dim);padding:12px;border-radius:12px;">
+          <div class="slider-header">
+            <span>Vertical Wave Order</span>
+            <span id="waveModeVal" style="color:var(--cyan);font-weight:800;font-size:11px;">LOW &rarr; HIGH WAVE</span>
+          </div>
+          <div class="pattern-grid">
+            <button type="button" class="pattern-btn active" id="waveBtn1" onclick="setWaveMode(1, 'LOW → HIGH WAVE')">
+              <span>Low &rarr; High</span>
+              <small style="font-size:9px;opacity:0.75;">WS &rarr; Vest &rarr; Gimbal</small>
+            </button>
+            <button type="button" class="pattern-btn" id="waveBtn2" onclick="setWaveMode(2, 'HIGH → LOW WAVE')">
+              <span>High &rarr; Low</span>
+              <small style="font-size:9px;opacity:0.75;">Gimbal &rarr; Vest &rarr; WS</small>
+            </button>
+            <button type="button" class="pattern-btn" id="waveBtn0" onclick="setWaveMode(0, 'UNISON SYNC')">
+              <span>Unison Sync</span>
+              <small style="font-size:9px;opacity:0.75;">All Nodes Together</small>
+            </button>
+          </div>
+          <div class="slider-header" style="margin-top:10px;">
+            <label for="waveOffsetSlider">Wave Phase Delay Per Tier</label>
+            <span class="slider-val-badge" id="waveOffsetVal">30%</span>
+          </div>
+          <input type="range" id="waveOffsetSlider" min="0" max="50" step="5" value="30"
+                 oninput="onSliderInput(this, 'waveOffsetVal', '%', true)"
+                 onchange="saveLedSettings()">
+        </div>
+
+        <!-- Standby / Disarmed Animation -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Standby Animation (Disarmed)</span>
+            <span id="patternNameVal" style="color:var(--cyan);font-weight:800;font-size:11px;">APPLE BREATH</span>
+          </div>
+          <div class="pattern-grid">
+            <button type="button" class="pattern-btn active" id="patBtn0" onclick="setLedPattern(0, 'APPLE BREATH')">Apple Breath</button>
+            <button type="button" class="pattern-btn" id="patBtn5" onclick="setLedPattern(5, 'SOFT FLASH')">Soft Flash</button>
+            <button type="button" class="pattern-btn" id="patBtn3" onclick="setLedPattern(3, 'HEARTBEAT')">Heartbeat</button>
+            <button type="button" class="pattern-btn" id="patBtn7" onclick="setLedPattern(7, 'REACTOR SURGE')">Reactor Surge</button>
+            <button type="button" class="pattern-btn" id="patBtn8" onclick="setLedPattern(8, 'RAINBOW FLOW')">Rainbow Flow</button>
+            <button type="button" class="pattern-btn" id="patBtn1" onclick="setLedPattern(1, 'SOLID GLOW')">Solid Glow</button>
+          </div>
+          <div class="slider-header" style="margin-top:10px;">
+            <label for="breathPeriodSlider">Standby Pulse Period</label>
+            <span class="slider-val-badge" id="breathPeriodVal">3600 ms</span>
+          </div>
+          <input type="range" id="breathPeriodSlider" min="600" max="6000" step="100" value="3600"
+                 oninput="onSliderInput(this, 'breathPeriodVal', ' ms', true)"
+                 onchange="saveLedSettings()">
+        </div>
+
+        <!-- Armed Animation (Active when EITHER Webshooter OR Gimbal is Armed) -->
+        <div class="slider-group" style="background:rgba(255,42,85,0.06);border:1px solid rgba(255,42,85,0.26);padding:12px;border-radius:12px;">
+          <div class="slider-header">
+            <span>Armed Pattern (WS or Gimbal Armed)</span>
+            <span id="armedPatternNameVal" style="color:var(--red);font-weight:800;font-size:11px;">SOFT ARMED FLASH</span>
+          </div>
+          <div class="pattern-grid">
+            <button type="button" class="pattern-btn active-red" id="armPatBtn5" onclick="setArmedPattern(5, 'SOFT ARMED FLASH')">Soft Armed Flash</button>
+            <button type="button" class="pattern-btn" id="armPatBtn2" onclick="setArmedPattern(2, 'FAST PULSE')">Fast Pulse</button>
+            <button type="button" class="pattern-btn" id="armPatBtn6" onclick="setArmedPattern(6, 'TACTICAL STROBE')">Tactical Strobe</button>
+            <button type="button" class="pattern-btn" id="armPatBtn7" onclick="setArmedPattern(7, 'REACTOR SURGE')">Reactor Surge</button>
+            <button type="button" class="pattern-btn" id="armPatBtn3" onclick="setArmedPattern(3, 'HEARTBEAT')">Heartbeat</button>
+            <button type="button" class="pattern-btn" id="armPatBtn1" onclick="setArmedPattern(1, 'SOLID LOCK')">Solid Lock</button>
+          </div>
+          <div class="slider-header" style="margin-top:10px;">
+            <label for="armedPeriodSlider">Armed Flash Cycle Period</label>
+            <span class="slider-val-badge" id="armedPeriodVal" style="color:#ff8fa3;border-color:rgba(255,42,85,0.35);background:rgba(255,42,85,0.12);">1100 ms</span>
+          </div>
+          <input type="range" class="slider-red" id="armedPeriodSlider" min="300" max="3000" step="50" value="1100"
+                 oninput="onSliderInput(this, 'armedPeriodVal', ' ms', true)"
+                 onchange="saveLedSettings()">
+        </div>
+
+        <!-- Standby & Armed Colors -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="standbyPicker">Standby Color (Disarmed)</label>
+            <span class="slider-val-badge" id="standbyColorHex">#FFFFFF</span>
+          </div>
+          <div class="color-presets">
+            <button type="button" class="swatch active" aria-label="White" style="background:#FFFFFF;" onclick="setStandbyColor(255,255,255,'#FFFFFF',true)"></button>
+            <button type="button" class="swatch" aria-label="Cyan" style="background:#00F0FF;" onclick="setStandbyColor(0,240,255,'#00F0FF',true)"></button>
+            <button type="button" class="swatch" aria-label="Red" style="background:#FF0000;" onclick="setStandbyColor(255,0,0,'#FF0000',true)"></button>
+            <button type="button" class="swatch" aria-label="Emerald" style="background:#00FF9D;" onclick="setStandbyColor(0,255,157,'#00FF9D',true)"></button>
+            <button type="button" class="swatch" aria-label="Amber" style="background:#FFB700;" onclick="setStandbyColor(255,183,0,'#FFB700',true)"></button>
+            <button type="button" class="swatch" aria-label="Purple" style="background:#B026FF;" onclick="setStandbyColor(176,38,255,'#B026FF',true)"></button>
+            <input type="color" id="standbyPicker" class="color-picker-input" value="#ffffff" oninput="onCustomColorPick('standby', this.value)">
+          </div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="deployedPicker">Armed Color (WS or Gimbal Deployed)</label>
+            <span class="slider-val-badge" id="deployedColorHex" style="color:#ff8fa3;border-color:rgba(255,42,85,0.35);background:rgba(255,42,85,0.12);">#FF0000</span>
+          </div>
+          <div class="color-presets">
+            <button type="button" class="swatch active" aria-label="Red" style="background:#FF0000;" onclick="setDeployedColor(255,0,0,'#FF0000',true)"></button>
+            <button type="button" class="swatch" aria-label="Orange" style="background:#FF6D00;" onclick="setDeployedColor(255,109,0,'#FF6D00',true)"></button>
+            <button type="button" class="swatch" aria-label="Cyan" style="background:#00F0FF;" onclick="setDeployedColor(0,240,255,'#00F0FF',true)"></button>
+            <button type="button" class="swatch" aria-label="Blue" style="background:#003CFF;" onclick="setDeployedColor(0,60,255,'#003CFF',true)"></button>
+            <button type="button" class="swatch" aria-label="Lime" style="background:#76FF03;" onclick="setDeployedColor(118,255,3,'#76FF03',true)"></button>
+            <button type="button" class="swatch" aria-label="Purple" style="background:#B026FF;" onclick="setDeployedColor(176,38,255,'#B026FF',true)"></button>
+            <input type="color" id="deployedPicker" class="color-picker-input" value="#ff0000" oninput="onCustomColorPick('deployed', this.value)">
+          </div>
+        </div>
+
+        <!-- Brightness Bounds -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="minBrightSlider">Min Floor Brightness (Low Point)</label>
+            <span class="slider-val-badge" id="minBrightVal">12</span>
+          </div>
+          <input type="range" id="minBrightSlider" min="0" max="100" value="12"
+                 oninput="onSliderInput(this, 'minBrightVal', '', true)"
+                 onchange="saveLedSettings()">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="maxBrightSlider">Max Peak Brightness (High Point)</label>
+            <span class="slider-val-badge" id="maxBrightVal">220</span>
+          </div>
+          <input type="range" id="maxBrightSlider" min="60" max="255" value="220"
+                 oninput="onSliderInput(this, 'maxBrightVal', '', true)"
+                 onchange="saveLedSettings()">
+        </div>
+
+        <button type="button" class="apply-btn" onclick="saveLedSettings()">&#128190; Sync All Suit LEDs &amp; Save to Flash</button>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         RIGHT COLUMN ON DESKTOP / TABS 2 & 4 ON MOBILE
+         ===================================================================== -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <!-- TAB 2: TACTICAL COMMAND DECK & LIVE TELEMETRY -->
+      <div class="mobile-tab-section" id="tabSectionTactical">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">&#9889; Tactical Command Deck</div>
+            <div class="status-pill pill-blue" id="gimbalStatePill">STANDBY</div>
+          </div>
+          <div class="controls-grid">
+            <button type="button" class="btn btn-deploy" onclick="sendCmd('deploy')">
+              <span>ARM &amp; DEPLOY</span>
+              <small style="font-size:10px;opacity:0.85;">Unfold &amp; Track</small>
+            </button>
+            <button type="button" class="btn btn-fold" onclick="sendCmd('fold')">
+              <span>DISARM &amp; STOW</span>
+              <small style="font-size:10px;opacity:0.85;">Retract to 0&deg;</small>
+            </button>
+            <button type="button" class="btn btn-zero" onclick="sendCmd('zero')">
+              <span>ZERO HORIZON</span>
+              <small style="font-size:10px;opacity:0.85;">Align Forward</small>
+            </button>
+            <button type="button" class="btn btn-deploy" style="background:linear-gradient(135deg,#b026ff,#5a189a);border-color:var(--purple);" onclick="sendCmd('role_toggle')">
+              <span>SWAP VEST ROLE</span>
+              <small style="font-size:10px;opacity:0.85;">Chest &harr; Back LED</small>
+            </button>
+            <button type="button" class="btn btn-fire" id="btnDeckFire">
+              <span>&#128293; HOLD TO FIRE ELECTROMAGNET</span>
+              <small style="font-size:10px;opacity:0.85;">Full 25W Repulsor Pulse</small>
+            </button>
+            <button type="button" class="btn btn-calib" onclick="openRcCockpit()" style="background:rgba(0,240,255,0.14);color:var(--cyan);border-color:var(--cyan);">
+              &#127918; OPEN FULLSCREEN 2-AXIS RC TURRET COCKPIT
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">&#128267; Live Suit Telemetry</div>
+            <span class="subtitle">4 HZ BLE STREAM</span>
+          </div>
+          <div class="battery-container">
+            <div class="battery-header">
+              <span class="telem-label">Connected Node Battery</span>
+              <span class="battery-val" id="gimbalVbatText">-- V (--%)</span>
+            </div>
+            <div class="battery-bar-bg">
+              <div class="battery-bar-fill" id="gimbalVbatBar"></div>
+            </div>
+          </div>
+          <div class="angle-display">
+            <div class="angle-box">
+              <div class="angle-num" id="gimbalYawVal">0.0&deg;</div>
+              <div class="angle-sub">YAW SERVO (0-180&deg;)</div>
+            </div>
+            <div class="angle-box">
+              <div class="angle-num" id="gimbalPitchVal">0.0&deg;</div>
+              <div class="angle-sub">PITCH SERVO (0-175&deg;)</div>
+            </div>
+          </div>
+          <div class="telemetry-row" style="margin-top:12px;">
+            <span class="telem-label">Connected BLE Node:</span>
+            <span class="telem-val" id="bleNodeNameVal" style="color:var(--amber);">NOT CONNECTED</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telem-label">Webshooter Stance:</span>
+            <span class="telem-val" id="wsStanceVal">STANDBY (90&deg;)</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telem-label">Zero Reference Lock:</span>
+            <span class="telem-val" id="zeroedVal">UNLOCKED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: SYSTEM, RADIO MODE (BLE <-> WIFI) & MOTION TUNING -->
+      <div class="mobile-tab-section" id="tabSectionSystem">
+        <div class="wireless-banner">
+          <div>
+            <div style="font-size:12px;font-weight:800;color:var(--cyan);letter-spacing:0.8px;text-transform:uppercase;">
+              ESP32 RADIO: <span id="espCommModeText" style="color:#e5b8ff;">BLE ONLY (DEFAULT)</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:4px;line-height:1.4;">
+              <b>BLE Mode</b> lets your phone stay on normal Wi-Fi/5G while controlling the suit. Switch to <b>Wi-Fi AP</b> anytime to host <code style="color:var(--cyan);">http://192.168.4.1</code>.
+            </div>
+          </div>
+          <div class="wireless-toggle-pills">
+            <button type="button" class="w-pill active-ble" id="pillModeBle" onclick="setEspWirelessMode(0)">
+              &#128225; BLE Mode (Default)
+            </button>
+            <button type="button" class="w-pill" id="pillModeWifi" onclick="setEspWirelessMode(1)">
+              &#128246; Wi-Fi AP (192.168.4.1)
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">&#9881; Gimbal Motion Tuning</div>
+            <div class="subtitle">KINEMATICS &amp; TIMING</div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <label for="alphaSlider">Tracking Smoothing Alpha (&alpha;)</label>
+              <span class="slider-val-badge" id="alphaVal">0.22</span>
+            </div>
+            <input type="range" id="alphaSlider" min="0.05" max="0.45" step="0.01" value="0.22"
+                   oninput="onSliderInput(this, 'alphaVal', '', false)">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <label for="speedSlider">Max Slew Speed Limit</label>
+              <span class="slider-val-badge" id="speedVal">280 deg/s</span>
+            </div>
+            <input type="range" id="speedSlider" min="100" max="500" step="10" value="280"
+                   oninput="onSliderInput(this, 'speedVal', ' deg/s', false)">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <label for="deployTimeSlider">Deploy Duration</label>
+              <span class="slider-val-badge" id="deployTimeVal">850 ms</span>
+            </div>
+            <input type="range" id="deployTimeSlider" min="400" max="2000" step="50" value="850"
+                   oninput="onSliderInput(this, 'deployTimeVal', ' ms', false)">
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <label for="foldTimeSlider">Fold Duration</label>
+              <span class="slider-val-badge" id="foldTimeVal">650 ms</span>
+            </div>
+            <input type="range" id="foldTimeSlider" min="400" max="2000" step="50" value="650"
+                   oninput="onSliderInput(this, 'foldTimeVal', ' ms', false)">
+          </div>
+          <button type="button" class="apply-btn" onclick="saveMotionSettings()">Apply Kinematics Settings</button>
+          <button type="button" class="btn btn-calib" style="width:100%;margin-top:10px;" onclick="sendCmd('calibrate_ground')">
+            RUN GROUND GYRO CALIBRATION (DESK ONLY)
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- STICKY MOBILE BOTTOM NAVIGATION BAR -->
+<nav class="bottom-nav" aria-label="Mobile Suit Sections">
+  <button type="button" class="nav-tab-btn active" id="navBtnLeds" onclick="switchMobileTab('leds')">
+    <span class="nav-tab-icon">&#128161;</span>
+    <span>LED Studio</span>
+  </button>
+  <button type="button" class="nav-tab-btn" id="navBtnTactical" onclick="switchMobileTab('tactical')">
+    <span class="nav-tab-icon">&#9889;</span>
+    <span>Tactical</span>
+  </button>
+  <button type="button" class="nav-tab-btn" id="navBtnCockpit" onclick="openRcCockpit()">
+    <span class="nav-tab-icon">&#127918;</span>
+    <span>RC Cockpit</span>
+  </button>
+  <button type="button" class="nav-tab-btn" id="navBtnSystem" onclick="switchMobileTab('system')">
+    <span class="nav-tab-icon">&#128225;</span>
+    <span>Radio / Tune</span>
+  </button>
+</nav>
+
+<!-- FULLSCREEN RC COCKPIT -->
+<div id="rcCockpit">
+  <div class="cockpit-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button type="button" class="btn-close-rc" onclick="closeRcCockpit()">&#10005; EXIT</button>
+      <div>
+        <div style="font-weight:800;font-size:13px;letter-spacing:0.8px;color:var(--cyan);">RC TURRET COCKPIT</div>
+      </div>
+    </div>
+    <span class="status-pill pill-blue" id="rcGimbalPill">STANDBY</span>
+  </div>
+  <div class="cockpit-body">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="mode-switch-card">
+        <div class="mode-toggle-group">
+          <button type="button" class="mode-tab tracking" id="tabTracking" onclick="setRcMode(false)">&#128065; HEAD TRACKING</button>
+          <button type="button" class="mode-tab active rc" id="tabRc" onclick="setRcMode(true)">&#127918; RC JOYSTICK</button>
+        </div>
+      </div>
+      <div class="radar-card">
+        <div style="width:100%;display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--cyan);">
+          <span>TOUCH / DRAG RETICLE TO AIM</span>
+          <span id="rcAnglesReadout">Y: 90.0&deg; | P: 110.0&deg;</span>
+        </div>
+        <div class="reticle-box" id="reticleBox">
+          <div class="reticle-axis-x"></div>
+          <div class="reticle-axis-y"></div>
+          <div class="reticle-crosshair" id="reticleCrosshair"></div>
+        </div>
+      </div>
+      <div class="cockpit-actions">
+        <button type="button" class="btn-cockpit btn-cockpit-deploy" onclick="sendCmd('deploy')">ARM &amp; DEPLOY</button>
+        <button type="button" class="btn-cockpit btn-cockpit-fold" onclick="sendCmd('fold')">DISARM &amp; STOW</button>
+        <button type="button" class="btn-cockpit btn-cockpit-zero" onclick="sendCmd('zero')">ZERO HORIZON</button>
+        <button type="button" class="btn-cockpit btn-cockpit-center" onclick="rcCenter()">RE-CENTER</button>
+        <button type="button" class="btn-cockpit btn-cockpit-fire" id="btnCockpitFire">&#128293; HOLD TO FIRE ELECTROMAGNET</button>
+      </div>
+    </div>
+    <div class="joystick-card">
+      <div style="font-weight:800;font-size:11px;color:var(--cyan);margin-bottom:2px;">2-AXIS VIRTUAL JOYSTICK</div>
+      <div class="joystick-zone" id="joyZone">
+        <div class="joystick-base"></div>
+        <div class="joystick-thumb" id="joyThumb">&#9678;</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-top:2px;" id="joyFeedback">JOYSTICK: NEUTRAL</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">Command Sent</div>
+
+<script>
+  // ===========================================================================
+  // BLE GATT UUIDs (Matches Suit-Gimbal-Hub & Suit-LED-Vest)
+  // ===========================================================================
+  const SUIT_SERVICE_UUID     = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+  const SUIT_CHAR_STATUS_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+  const SUIT_CHAR_CMD_UUID    = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
+  const WIFI_BASE_URL         = 'http://192.168.4.1';
+
+  let bleDevice = null;
+  let bleServer = null;
+  let bleStatusChar = null;
+  let bleCmdChar = null;
+  let isBleConnected = false;
+  let bleWriteBusy = false;
+  let queuedBleWrite = null;
+  let liveSliderSyncTimer = null;
+
+  // Suit LED & Animation State
+  let standbyR = 255, standbyG = 255, standbyB = 255;
+  let deployedR = 255, deployedG = 0, deployedB = 0;
+  let ledPattern = 0;
+  let armedPattern = 5;
+  let waveMode = 1;
+  let overrideState = 255;
+  let liveSuitState = 0; // 0=Standby, 1=Armed, 2=Firing
+  let espCommMode = 0;   // 0=BLE (default), 1=Wi-Fi AP + BLE
+  let settingsHydrated = false;
+  let currentRcYaw = 90.0, currentRcPitch = 110.0;
+  let currentRcMode = false;
+  let isDraggingJoy = false;
+
+  const patNames = {
+    0: 'APPLE BREATH',
+    1: 'SOLID GLOW',
+    2: 'FAST PULSE',
+    3: 'HEARTBEAT',
+    4: 'STEALTH OFF',
+    5: 'SOFT ARMED FLASH',
+    6: 'TACTICAL STROBE',
+    7: 'REACTOR SURGE',
+    8: 'RAINBOW FLOW'
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => Number(x).toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+
+  // ===========================================================================
+  // MOBILE TAB NAVIGATION & SLIDER PROGRESS FILL
+  // ===========================================================================
+  function switchMobileTab(tabKey) {
+    const map = {
+      leds:     { sec: 'tabSectionLeds',     btn: 'navBtnLeds' },
+      tactical: { sec: 'tabSectionTactical', btn: 'navBtnTactical' },
+      system:   { sec: 'tabSectionSystem',   btn: 'navBtnSystem' }
+    };
+    Object.keys(map).forEach(k => {
+      const secEl = document.getElementById(map[k].sec);
+      const btnEl = document.getElementById(map[k].btn);
+      if (secEl) secEl.classList.toggle('active-tab', k === tabKey);
+      if (btnEl) btnEl.classList.toggle('active', k === tabKey);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function syncSliderProgress(sliderEl) {
+    if (!sliderEl) return;
+    const min = parseFloat(sliderEl.min || 0);
+    const max = parseFloat(sliderEl.max || 100);
+    const val = parseFloat(sliderEl.value || 0);
+    const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+    sliderEl.style.setProperty('--slider-progress', pct.toFixed(1) + '%');
+  }
+
+  function syncAllSlidersProgress() {
+    document.querySelectorAll('input[type="range"]').forEach(syncSliderProgress);
+  }
+
+  function onSliderInput(sliderEl, labelId, suffix, liveBleSync) {
+    syncSliderProgress(sliderEl);
+    const lbl = document.getElementById(labelId);
+    if (lbl) lbl.innerText = sliderEl.value + (suffix || '');
+    if (liveBleSync && isBleConnected) {
+      clearTimeout(liveSliderSyncTimer);
+      liveSliderSyncTimer = setTimeout(() => {
+        saveLedSettings(true);
+      }, 90);
+    }
+  }
+
+  function toggleQuickArmedPreview() {
+    if (overrideState === 1) {
+      setOverrideState(255, true);
+    } else {
+      setOverrideState(1, true);
+    }
+  }
+
+  // ===========================================================================
+  // WEB BLUETOOTH CONNECTION & TRANSPORT ENGINE
+  // ===========================================================================
+  async function toggleBleConnection() {
+    if (isBleConnected && bleDevice && bleDevice.gatt.connected) {
+      bleDevice.gatt.disconnect();
+      return;
+    }
+    if (!navigator.bluetooth) {
+      showToast('Use Chrome on Android/Desktop or Bluefy on iOS');
+      return;
+    }
+    try {
+      showToast('Scanning for Suit ESP32...');
+      bleDevice = await navigator.bluetooth.requestDevice({
+        filters: [
+          { services: [SUIT_SERVICE_UUID] },
+          { namePrefix: 'Suit-' }
+        ],
+        optionalServices: [SUIT_SERVICE_UUID]
+      });
+      bleDevice.addEventListener('gattserverdisconnected', onBleDisconnected);
+      bleServer = await bleDevice.gatt.connect();
+      const service = await bleServer.getPrimaryService(SUIT_SERVICE_UUID);
+      bleStatusChar = await service.getCharacteristic(SUIT_CHAR_STATUS_UUID);
+      bleCmdChar = await service.getCharacteristic(SUIT_CHAR_CMD_UUID);
+
+      await bleStatusChar.startNotifications();
+      bleStatusChar.addEventListener('characteristicvaluechanged', (event) => {
+        const dec = new TextDecoder('utf-8');
+        const txt = dec.decode(event.target.value);
+        try {
+          handleIncomingStatus(JSON.parse(txt));
+        } catch (e) {}
+      });
+
+      isBleConnected = true;
+      settingsHydrated = false;
+      updateConnectionUI(true, bleDevice.name || 'Suit-ESP32');
+      showToast('Connected to ' + (bleDevice.name || 'Suit ESP32'));
+
+      const initVal = await bleStatusChar.readValue();
+      const dec = new TextDecoder('utf-8');
+      try {
+        handleIncomingStatus(JSON.parse(dec.decode(initVal)));
+      } catch (e) {}
+    } catch (err) {
+      showToast('BLE Connect Cancelled');
+    }
+  }
+
+  function onBleDisconnected() {
+    isBleConnected = false;
+    updateConnectionUI(false, 'DISCONNECTED');
+    showToast('BLE Disconnected');
+  }
+
+  function updateConnectionUI(connected, label) {
+    const btn = document.getElementById('btnBleConnect');
+    const txt = document.getElementById('btnBleText');
+    const dot = document.getElementById('connDot');
+    const hdr = document.getElementById('headerStatus');
+    const nodeEl = document.getElementById('bleNodeNameVal');
+    if (connected) {
+      btn.classList.add('connected');
+      txt.innerHTML = '&#9679; ' + label + ' (TAP TO DISCONNECT)';
+      dot.classList.add('online');
+      hdr.innerText = 'BLE ONLINE';
+      if (nodeEl) { nodeEl.innerText = label; nodeEl.style.color = 'var(--emerald)'; }
+    } else {
+      btn.classList.remove('connected');
+      txt.innerHTML = '&#128225; TAP TO CONNECT SUIT BLE';
+      dot.classList.remove('online');
+      hdr.innerText = 'BLE STANDBY';
+      if (nodeEl) { nodeEl.innerText = 'NOT CONNECTED'; nodeEl.style.color = 'var(--amber)'; }
+    }
+  }
+
+  async function sendBleRaw(str) {
+    if (!isBleConnected || !bleCmdChar) {
+      return false;
+    }
+    if (bleWriteBusy) {
+      queuedBleWrite = str;
+      return true;
+    }
+    bleWriteBusy = true;
+    try {
+      const enc = new TextEncoder();
+      if (bleCmdChar.writeValueWithoutResponse) {
+        await bleCmdChar.writeValueWithoutResponse(enc.encode(str));
+      } else {
+        await bleCmdChar.writeValue(enc.encode(str));
+      }
+    } catch (e) {
+    } finally {
+      bleWriteBusy = false;
+      if (queuedBleWrite) {
+        const next = queuedBleWrite;
+        queuedBleWrite = null;
+        sendBleRaw(next);
+      }
+    }
+    return true;
+  }
+
+  // ===========================================================================
+  // WIRELESS MODE SWITCHING (BLE <-> WI-FI AP)
+  // ===========================================================================
+  function updateCommModePills(mode) {
+    espCommMode = mode;
+    const pBle = document.getElementById('pillModeBle');
+    const pWifi = document.getElementById('pillModeWifi');
+    const lbl = document.getElementById('espCommModeText');
+    if (mode === 0) {
+      pBle.className = 'w-pill active-ble';
+      pWifi.className = 'w-pill';
+      if (lbl) { lbl.innerText = 'BLE ONLY (DEFAULT)'; lbl.style.color = '#e5b8ff'; }
+    } else {
+      pBle.className = 'w-pill';
+      pWifi.className = 'w-pill active-wifi';
+      if (lbl) { lbl.innerText = 'WI-FI AP + BLE (192.168.4.1)'; lbl.style.color = 'var(--cyan)'; }
+    }
+  }
+
+  async function setEspWirelessMode(targetMode) {
+    updateCommModePills(targetMode);
+    if (isBleConnected) {
+      await sendBleRaw(targetMode === 1 ? 'cmd:comm_wifi' : 'cmd:comm_ble');
+      showToast(targetMode === 1 ? 'Wi-Fi SoftAP Enabled (192.168.4.1)' : 'BLE Only Mode (Wi-Fi AP Off)');
+    } else {
+      fetch(WIFI_BASE_URL + '/api/cmd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=comm_mode&mode=' + targetMode
+      })
+      .then(r => r.json())
+      .then(d => showToast(d.message || 'Wireless Mode Updated'))
+      .catch(() => showToast('Connect Suit BLE first'));
+    }
+  }
+
+  // ===========================================================================
+  // LED & ANIMATION CONTROLS
+  // ===========================================================================
+  function setLedPattern(patId, patName, autoSave = true) {
+    ledPattern = patId;
+    const lbl = document.getElementById('patternNameVal');
+    if (lbl) lbl.innerText = patName || patNames[patId] || 'APPLE BREATH';
+    [0, 1, 3, 5, 7, 8].forEach(i => {
+      const btn = document.getElementById('patBtn' + i);
+      if (btn) btn.className = 'pattern-btn' + (i === patId ? ' active' : '');
+    });
+    if (autoSave) saveLedSettings();
+  }
+
+  function setArmedPattern(patId, patName, autoSave = true) {
+    armedPattern = patId;
+    const lbl = document.getElementById('armedPatternNameVal');
+    if (lbl) lbl.innerText = patName || patNames[patId] || 'SOFT ARMED FLASH';
+    [1, 2, 3, 5, 6, 7].forEach(i => {
+      const btn = document.getElementById('armPatBtn' + i);
+      if (btn) btn.className = 'pattern-btn' + (i === patId ? ' active-red' : '');
+    });
+    if (autoSave) saveLedSettings();
+  }
+
+  function setWaveMode(modeId, modeName, autoSave = true) {
+    waveMode = modeId;
+    const lbl = document.getElementById('waveModeVal');
+    const names = { 0: 'UNISON SYNC', 1: 'LOW → HIGH WAVE', 2: 'HIGH → LOW WAVE' };
+    if (lbl) lbl.innerText = modeName || names[modeId] || 'LOW → HIGH WAVE';
+    [0, 1, 2].forEach(i => {
+      const btn = document.getElementById('waveBtn' + i);
+      if (btn) btn.className = 'pattern-btn' + (i === modeId ? ' active' : '');
+    });
+    if (autoSave) saveLedSettings();
+  }
+
+  function setOverrideState(ovId, autoSave = true) {
+    overrideState = ovId;
+    const lbl = document.getElementById('overrideModeLbl');
+    const quickBtn = document.getElementById('btnQuickArm');
+    const quickTxt = document.getElementById('btnQuickArmText');
+    const names = {
+      255: 'AUTO (EITHER ARMED)',
+      0: 'FORCED STANDBY PREVIEW',
+      1: 'FORCED ARMED PREVIEW',
+      2: 'FORCED FIRING PREVIEW'
+    };
+    if (lbl) {
+      lbl.innerText = names[ovId] || 'AUTO (EITHER ARMED)';
+      lbl.style.color = (ovId === 255) ? 'var(--emerald)' : (ovId === 0 ? 'var(--cyan)' : 'var(--red)');
+    }
+    if (quickBtn && quickTxt) {
+      const isForcedArmed = (ovId === 1);
+      quickBtn.classList.toggle('armed', isForcedArmed);
+      quickTxt.innerHTML = isForcedArmed ? '&#9889; ARMED ON' : '&#128680; TEST ARMED';
+    }
+    [255, 0, 1, 2].forEach(i => {
+      const btn = document.getElementById('ovBtn' + i);
+      if (btn) btn.className = 'pattern-btn' + (i === ovId ? ' active' : '');
+    });
+    if (autoSave) saveLedSettings();
+  }
+
+  function onCustomColorPick(mode, hexVal) {
+    const r = parseInt(hexVal.substr(1, 2), 16);
+    const g = parseInt(hexVal.substr(3, 2), 16);
+    const b = parseInt(hexVal.substr(5, 2), 16);
+    if (mode === 'standby') setStandbyColor(r, g, b, hexVal.toUpperCase(), true);
+    else setDeployedColor(r, g, b, hexVal.toUpperCase(), true);
+  }
+
+  function setStandbyColor(r, g, b, hex, autoSave = false) {
+    standbyR = r; standbyG = g; standbyB = b;
+    const h = hex || rgbToHex(r, g, b);
+    document.getElementById('standbyColorHex').innerText = h;
+    document.getElementById('standbyPicker').value = h.toLowerCase();
+    if (autoSave) saveLedSettings();
+  }
+
+  function setDeployedColor(r, g, b, hex, autoSave = false) {
+    deployedR = r; deployedG = g; deployedB = b;
+    const h = hex || rgbToHex(r, g, b);
+    document.getElementById('deployedColorHex').innerText = h;
+    document.getElementById('deployedPicker').value = h.toLowerCase();
+    if (autoSave) saveLedSettings();
+  }
+
+  function applySuitPreset(presetKey) {
+    if (presetKey === 'default_wave') {
+      setStandbyColor(255, 255, 255, '#FFFFFF', false);
+      setDeployedColor(255, 0, 0, '#FF0000', false);
+      setLedPattern(0, 'APPLE BREATH', false);
+      setArmedPattern(5, 'SOFT ARMED FLASH', false);
+      setWaveMode(1, 'LOW → HIGH WAVE', false);
+      document.getElementById('waveOffsetSlider').value = 30;
+      document.getElementById('waveOffsetVal').innerText = '30%';
+      document.getElementById('breathPeriodSlider').value = 3600;
+      document.getElementById('breathPeriodVal').innerText = '3600 ms';
+      document.getElementById('armedPeriodSlider').value = 1100;
+      document.getElementById('armedPeriodVal').innerText = '1100 ms';
+    } else if (presetKey === 'tactical_red') {
+      setStandbyColor(0, 240, 255, '#00F0FF', false);
+      setDeployedColor(255, 0, 0, '#FF0000', false);
+      setLedPattern(0, 'APPLE BREATH', false);
+      setArmedPattern(6, 'TACTICAL STROBE', false);
+      setWaveMode(1, 'LOW → HIGH WAVE', false);
+      document.getElementById('waveOffsetSlider').value = 25;
+      document.getElementById('waveOffsetVal').innerText = '25%';
+      document.getElementById('breathPeriodSlider').value = 3000;
+      document.getElementById('breathPeriodVal').innerText = '3000 ms';
+      document.getElementById('armedPeriodSlider').value = 950;
+      document.getElementById('armedPeriodVal').innerText = '950 ms';
+    } else if (presetKey === 'iron_spider') {
+      setStandbyColor(255, 183, 0, '#FFB700', false);
+      setDeployedColor(255, 0, 0, '#FF0000', false);
+      setLedPattern(7, 'REACTOR SURGE', false);
+      setArmedPattern(5, 'SOFT ARMED FLASH', false);
+      setWaveMode(1, 'LOW → HIGH WAVE', false);
+      document.getElementById('waveOffsetSlider').value = 30;
+      document.getElementById('waveOffsetVal').innerText = '30%';
+      document.getElementById('breathPeriodSlider').value = 2800;
+      document.getElementById('breathPeriodVal').innerText = '2800 ms';
+      document.getElementById('armedPeriodSlider').value = 900;
+      document.getElementById('armedPeriodVal').innerText = '900 ms';
+    } else if (presetKey === 'symbiote') {
+      setStandbyColor(176, 38, 255, '#B026FF', false);
+      setDeployedColor(255, 0, 85, '#FF0055', false);
+      setLedPattern(3, 'HEARTBEAT', false);
+      setArmedPattern(5, 'SOFT ARMED FLASH', false);
+      setWaveMode(2, 'HIGH → LOW WAVE', false);
+      document.getElementById('waveOffsetSlider').value = 30;
+      document.getElementById('waveOffsetVal').innerText = '30%';
+      document.getElementById('breathPeriodSlider').value = 3200;
+      document.getElementById('breathPeriodVal').innerText = '3200 ms';
+      document.getElementById('armedPeriodSlider').value = 1000;
+      document.getElementById('armedPeriodVal').innerText = '1000 ms';
+    } else if (presetKey === 'cyber_rainbow') {
+      setLedPattern(8, 'RAINBOW FLOW', false);
+      setArmedPattern(5, 'SOFT ARMED FLASH', false);
+      setWaveMode(1, 'LOW → HIGH WAVE', false);
+      document.getElementById('waveOffsetSlider').value = 30;
+      document.getElementById('waveOffsetVal').innerText = '30%';
+      document.getElementById('breathPeriodSlider').value = 4000;
+      document.getElementById('breathPeriodVal').innerText = '4000 ms';
+    } else if (presetKey === 'stealth') {
+      setLedPattern(4, 'STEALTH OFF', false);
+    }
+    syncAllSlidersProgress();
+    saveLedSettings();
+  }
+
+  async function saveLedSettings(silentToast = false) {
+    const minB = document.getElementById('minBrightSlider').value;
+    const maxB = document.getElementById('maxBrightSlider').value;
+    const period = document.getElementById('breathPeriodSlider').value;
+    const armPer = document.getElementById('armedPeriodSlider').value;
+    const waveOff = document.getElementById('waveOffsetSlider').value;
+
+    const blePayload = `L:${standbyR},${standbyG},${standbyB},${deployedR},${deployedG},${deployedB},${ledPattern},${armedPattern},${waveMode},${waveOff},${minB},${maxB},${period},${armPer},${overrideState}`;
+    if (await sendBleRaw(blePayload)) {
+      if (!silentToast) showToast('Suit Mesh Synced via BLE!');
+      return;
+    }
+
+    if (silentToast) return;
+    const params = new URLSearchParams({
+      action: 'led',
+      sr: standbyR, sg: standbyG, sb: standbyB,
+      dr: deployedR, dg: deployedG, db: deployedB,
+      pattern: ledPattern, arm_pat: armedPattern,
+      wave_mode: waveMode, wave_off: waveOff,
+      min_b: minB, max_b: maxB,
+      period: period, arm_per: armPer,
+      override_state: overrideState
+    });
+    fetch(WIFI_BASE_URL + '/api/settings', { method: 'POST', body: params })
+      .then(r => r.json())
+      .then(() => showToast('Suit Mesh Synced via Wi-Fi!'))
+      .catch(() => showToast('Tap "Connect Suit BLE" at top'));
+  }
+
+  async function saveMotionSettings() {
+    const alpha = document.getElementById('alphaSlider').value;
+    const speed = document.getElementById('speedSlider').value;
+    const deployT = document.getElementById('deployTimeSlider').value;
+    const foldT = document.getElementById('foldTimeSlider').value;
+    if (await sendBleRaw(`mot:${alpha},${speed},${deployT},${foldT}`)) {
+      showToast('Kinematics Saved via BLE!');
+      return;
+    }
+    const params = new URLSearchParams({
+      action: 'motion', alpha: alpha, speed: speed, deploy_ms: deployT, fold_ms: foldT
+    });
+    fetch(WIFI_BASE_URL + '/api/settings', { method: 'POST', body: params })
+      .then(() => showToast('Kinematics Saved via Wi-Fi!'))
+      .catch(() => showToast('Tap "Connect Suit BLE" at top'));
+  }
+
+  async function sendCmd(action) {
+    if (await sendBleRaw('cmd:' + action)) {
+      showToast('BLE: ' + action.toUpperCase());
+      return;
+    }
+    fetch(WIFI_BASE_URL + '/api/cmd', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'action=' + encodeURIComponent(action)
+    })
+    .then(r => r.json())
+    .then(d => showToast(d.message || 'Command Sent'))
+    .catch(() => showToast('Tap "Connect Suit BLE" at top'));
+  }
+
+  // Mobile-safe Pointer Event Hold-to-Fire Binding
+  let fireActive = false;
+  function fireStart(btnEl) {
+    if (!fireActive) {
+      fireActive = true;
+      if (btnEl) btnEl.classList.add('firing-active');
+      sendCmd('fire_start');
+    }
+  }
+  function fireStop(btnEl) {
+    if (fireActive) {
+      fireActive = false;
+      if (btnEl) btnEl.classList.remove('firing-active');
+      sendCmd('fire_stop');
+    }
+  }
+
+  function bindHoldToFireButton(btnId) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+      fireStart(btn);
+    });
+    const endFire = () => fireStop(btn);
+    btn.addEventListener('pointerup', endFire);
+    btn.addEventListener('pointercancel', endFire);
+    btn.addEventListener('lostpointercapture', endFire);
+  }
+  bindHoldToFireButton('btnDeckFire');
+  bindHoldToFireButton('btnCockpitFire');
+
+  // ===========================================================================
+  // STATUS HYDRATION (FROM BLE NOTIFY OR WIFI POLL)
+  // ===========================================================================
+  function updateBatteryUI(vbatMv, textElId, barElId) {
+    const vText = document.getElementById(textElId);
+    const vBar = document.getElementById(barElId);
+    if (!vbatMv || vbatMv < 1000) {
+      if (vText) vText.innerText = 'USB POWER';
+      if (vBar) vBar.style.width = '0%';
+      return;
+    }
+    const volts = (vbatMv / 1000.0).toFixed(2);
+    const pct = Math.max(0, Math.min(100, Math.round(((vbatMv - 3300) / (4200 - 3300)) * 100)));
+    if (vText) vText.innerText = `${volts}V (${pct}%)`;
+    if (vBar) {
+      vBar.style.width = pct + '%';
+      vBar.style.backgroundColor = pct > 50 ? 'var(--emerald)' : (pct > 20 ? 'var(--amber)' : 'var(--red)');
+    }
+  }
+
+  function handleIncomingStatus(d) {
+    if (d.comm !== undefined) updateCommModePills(d.comm);
+    if (d.node) {
+      const nodeEl = document.getElementById('bleNodeNameVal');
+      if (nodeEl) { nodeEl.innerText = d.node; nodeEl.style.color = 'var(--emerald)'; }
+    }
+    if (d.g) {
+      const gPill = document.getElementById('gimbalStatePill');
+      const rcPill = document.getElementById('rcGimbalPill');
+      if (gPill) {
+        gPill.innerText = d.g.st;
+        gPill.className = 'status-pill ' + (d.g.st === 'TRACKING' ? 'pill-red' : 'pill-blue');
+      }
+      if (rcPill) {
+        rcPill.innerText = d.g.st;
+        rcPill.className = 'status-pill ' + (d.g.st === 'TRACKING' ? 'pill-red' : 'pill-blue');
+      }
+      updateBatteryUI(d.g.v, 'gimbalVbatText', 'gimbalVbatBar');
+      document.getElementById('gimbalYawVal').innerHTML = Number(d.g.y).toFixed(1) + '&deg;';
+      document.getElementById('gimbalPitchVal').innerHTML = Number(d.g.p).toFixed(1) + '&deg;';
+      const zEl = document.getElementById('zeroedVal');
+      if (zEl) {
+        zEl.innerText = d.g.z ? 'LOCKED (Ready)' : 'UNLOCKED';
+        zEl.style.color = d.g.z ? 'var(--cyan)' : 'var(--amber)';
+      }
+    }
+    if (d.ws) {
+      const wsTag = document.getElementById('meshWsTag');
+      if (wsTag) {
+        wsTag.className = 'mesh-node-tag ' + (d.ws.c ? 'pill-green' : 'pill-amber');
+        wsTag.innerHTML = (d.ws.c ? '&#9679; ' : '&#9675; ') + '1. WS (LOW)';
+      }
+      const wsSt = document.getElementById('wsStanceVal');
+      if (wsSt) wsSt.innerText = d.ws.pos === 0 ? 'DEPLOYED / ARMED (0°)' : 'STANDBY (90°)';
+    }
+    if (d.m) {
+      const cTag = document.getElementById('meshChestTag');
+      if (cTag) {
+        cTag.className = 'mesh-node-tag ' + (d.m.c ? 'pill-green' : 'pill-amber');
+        cTag.innerHTML = (d.m.c ? '&#9679; ' : '&#9675; ') + '2. CHEST (MID)';
+      }
+      const bTag = document.getElementById('meshBackTag');
+      if (bTag) {
+        bTag.className = 'mesh-node-tag ' + (d.m.b ? 'pill-green' : 'pill-amber');
+        bTag.innerHTML = (d.m.b ? '&#9679; ' : '&#9675; ') + '2. BACK (MID)';
+      }
+      const gTag = document.getElementById('meshGimbalTag');
+      if (gTag) {
+        gTag.className = 'mesh-node-tag ' + (d.m.g ? 'pill-green' : 'pill-amber');
+        gTag.innerHTML = (d.m.g ? '&#9679; ' : '&#9675; ') + '3. GIMBAL (HIGH)';
+      }
+    }
+    if (d.s) {
+      liveSuitState = d.s.st || 0;
+      const suitPill = document.getElementById('suitLedActivePill');
+      if (suitPill) {
+        if (liveSuitState === 2) {
+          suitPill.innerText = 'FIRING OVERRIDE';
+          suitPill.className = 'status-pill pill-red';
+        } else if (liveSuitState === 1) {
+          suitPill.innerText = 'ARMED FLASH';
+          suitPill.className = 'status-pill pill-red';
+        } else {
+          suitPill.innerText = waveMode === 1 ? 'LOW→HIGH WAVE' : (waveMode === 2 ? 'HIGH→LOW WAVE' : 'STANDBY SYNC');
+          suitPill.className = 'status-pill pill-blue';
+        }
+      }
+      if (!settingsHydrated) {
+        settingsHydrated = true;
+        setStandbyColor(d.s.sr, d.s.sg, d.s.sb, null, false);
+        setDeployedColor(d.s.dr, d.s.dg, d.s.db, null, false);
+        setLedPattern(d.s.pat, null, false);
+        setArmedPattern(d.s.apat, null, false);
+        setWaveMode(d.s.wm, null, false);
+        setOverrideState(d.s.ov, false);
+        document.getElementById('waveOffsetSlider').value = d.s.wo;
+        document.getElementById('waveOffsetVal').innerText = d.s.wo + '%';
+        document.getElementById('minBrightSlider').value = d.s.min;
+        document.getElementById('minBrightVal').innerText = d.s.min;
+        document.getElementById('maxBrightSlider').value = d.s.max;
+        document.getElementById('maxBrightVal').innerText = d.s.max;
+        document.getElementById('breathPeriodSlider').value = d.s.per;
+        document.getElementById('breathPeriodVal').innerText = d.s.per + ' ms';
+        document.getElementById('armedPeriodSlider').value = d.s.aper;
+        document.getElementById('armedPeriodVal').innerText = d.s.aper + ' ms';
+        syncAllSlidersProgress();
+      }
+    }
+  }
+
+  // ===========================================================================
+  // REAL-TIME 3-TIER SUIT WAVE ANIMATION PREVIEW ENGINE
+  // ===========================================================================
+  function evalPatternNormJS(pat, phaseMs, periodMs) {
+    const t = (phaseMs % periodMs) / periodMs;
+    if (pat === 4) return 0;
+    if (pat === 1) return 1;
+    if (pat === 2) {
+      const fp = Math.max(300, periodMs / 2);
+      const a = (2 * Math.PI * (phaseMs % fp) / fp) - 0.5 * Math.PI;
+      return (Math.exp(Math.sin(a)) - 0.367879) / 2.3504;
+    }
+    if (pat === 3) {
+      const d1 = (t - 0.14) / 0.055, d2 = (t - 0.30) / 0.045;
+      return Math.max(Math.exp(-d1 * d1), 0.72 * Math.exp(-d2 * d2));
+    }
+    if (pat === 5) {
+      const s = Math.max(0, Math.sin(Math.PI * t));
+      return s * s * s;
+    }
+    if (pat === 6) {
+      const d1 = (t - 0.22) / 0.065, d2 = (t - 0.50) / 0.065;
+      return Math.max(Math.exp(-d1 * d1), Math.exp(-d2 * d2));
+    }
+    if (pat === 7) {
+      if (t < 0.7) { const u = t / 0.7; return u * u * (3 - 2 * u); }
+      const u = (1 - t) / 0.3; return u * u;
+    }
+    const a = (2 * Math.PI * t) - 0.5 * Math.PI;
+    return (Math.exp(Math.sin(a)) - 0.367879) / 2.3504;
+  }
+
+  function animateSuitPreview() {
+    const now = performance.now();
+    const effState = (overrideState <= 2) ? overrideState : liveSuitState;
+    const isArmed = (effState === 1);
+    const isFiring = (effState === 2);
+
+    const period = isArmed
+      ? Number(document.getElementById('armedPeriodSlider').value || 1100)
+      : Number(document.getElementById('breathPeriodSlider').value || 3600);
+    const pat = isArmed ? armedPattern : ledPattern;
+    const waveOff = Number(document.getElementById('waveOffsetSlider').value || 30);
+
+    const orbs = [
+      document.getElementById('orbLow'),
+      document.getElementById('orbMid'),
+      document.getElementById('orbHigh')
+    ];
+    const subs = [
+      document.getElementById('orbLowSub'),
+      document.getElementById('orbMidSub'),
+      document.getElementById('orbHighSub')
+    ];
+
+    for (let tier = 0; tier < 3; tier++) {
+      let lagSteps = 0;
+      if (waveMode === 1) lagSteps = tier;
+      else if (waveMode === 2) lagSteps = 2 - tier;
+
+      const tierNames = ['LOW', 'MID', 'HIGH'];
+      subs[tier].innerText = waveMode === 0 ? `${tierNames[tier]} (0%)` : `${tierNames[tier]} (-${lagSteps * waveOff}%)`;
+
+      if (isFiring) {
+        orbs[tier].style.backgroundColor = 'rgb(255, 0, 0)';
+        orbs[tier].style.boxShadow = '0 0 22px rgba(255, 0, 0, 0.95)';
+        orbs[tier].style.transform = 'scale(1.12)';
+        continue;
+      }
+
+      const delayMs = (period * waveOff * lagSteps) / 100.0;
+      let phase = (now - delayMs) % period;
+      if (phase < 0) phase += period;
+
+      const norm = evalPatternNormJS(pat, phase, period);
+      const bright = 0.15 + 0.85 * norm;
+
+      let r = isArmed ? deployedR : standbyR;
+      let g = isArmed ? deployedG : standbyG;
+      let b = isArmed ? deployedB : standbyB;
+
+      if (pat === 8) {
+        const hue = (phase / period) * 360;
+        orbs[tier].style.backgroundColor = `hsl(${hue}, 100%, ${Math.round(bright * 55)}%)`;
+        orbs[tier].style.boxShadow = `0 0 ${Math.round(norm * 22)}px hsl(${hue}, 100%, 55%)`;
+      } else {
+        const rr = Math.round(r * bright), gg = Math.round(g * bright), bb = Math.round(b * bright);
+        orbs[tier].style.backgroundColor = `rgb(${rr}, ${gg}, ${bb})`;
+        orbs[tier].style.boxShadow = `0 0 ${Math.round(norm * 22)}px rgba(${r}, ${g}, ${b}, ${(norm * 0.85).toFixed(2)})`;
+      }
+      orbs[tier].style.transform = `scale(${(0.88 + 0.22 * norm).toFixed(2)})`;
+    }
+    requestAnimationFrame(animateSuitPreview);
+  }
+  syncAllSlidersProgress();
+  requestAnimationFrame(animateSuitPreview);
+
+  // ===========================================================================
+  // RC COCKPIT, TAP-TO-AIM RETICLE & VIRTUAL JOYSTICK (BLE + WI-FI)
+  // ===========================================================================
+  function openRcCockpit() {
+    document.getElementById('rcCockpit').classList.add('active');
+    setRcMode(true);
+  }
+  function closeRcCockpit() {
+    document.getElementById('rcCockpit').classList.remove('active');
+    setRcMode(false);
+  }
+  async function setRcMode(en) {
+    currentRcMode = en;
+    document.getElementById('tabTracking').className = 'mode-tab tracking' + (!en ? ' active' : '');
+    document.getElementById('tabRc').className = 'mode-tab rc' + (en ? ' active' : '');
+    await sendCmd(en ? 'rc_mode_1' : 'rc_mode_0');
+  }
+  function rcCenter() {
+    currentRcYaw = 90.0; currentRcPitch = 110.0;
+    updateReticle(90, 110);
+    sendCmd('rc_center');
+  }
+  function updateReticle(yaw, pitch) {
+    const ch = document.getElementById('reticleCrosshair');
+    const rd = document.getElementById('rcAnglesReadout');
+    if (ch) {
+      ch.style.left = Math.max(4, Math.min(96, (yaw / 180) * 100)).toFixed(1) + '%';
+      ch.style.top = Math.max(4, Math.min(96, 100 - (pitch / 175) * 100)).toFixed(1) + '%';
+    }
+    if (rd) rd.innerHTML = `Y: ${yaw.toFixed(1)}&deg; | P: ${pitch.toFixed(1)}&deg;`;
+  }
+
+  // Direct Touch/Drag on Reticle Box
+  (function initReticleTouch() {
+    const box = document.getElementById('reticleBox');
+    if (!box) return;
+    let aiming = false;
+    function aimAtEvent(e) {
+      const r = box.getBoundingClientRect();
+      const nx = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      const ny = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+      currentRcYaw = nx * 180.0;
+      currentRcPitch = (1.0 - ny) * 175.0;
+      updateReticle(currentRcYaw, currentRcPitch);
+      sendBleRaw(`rc:${currentRcYaw.toFixed(1)},${currentRcPitch.toFixed(1)}`);
+    }
+    box.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      aiming = true;
+      try { box.setPointerCapture(e.pointerId); } catch (_) {}
+      aimAtEvent(e);
+    });
+    box.addEventListener('pointermove', (e) => { if (aiming) aimAtEvent(e); });
+    const stopAim = () => { aiming = false; };
+    box.addEventListener('pointerup', stopAim);
+    box.addEventListener('pointercancel', stopAim);
+    box.addEventListener('lostpointercapture', stopAim);
+  })();
+
+  // 2-Axis Virtual Joystick
+  (function initJoystick() {
+    const zone = document.getElementById('joyZone');
+    const thumb = document.getElementById('joyThumb');
+    const fb = document.getElementById('joyFeedback');
+    if (!zone || !thumb) return;
+    let centerX = 0, centerY = 0, normX = 0, normY = 0, timer = null;
+    const maxR = 58;
+
+    zone.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      isDraggingJoy = true;
+      try { zone.setPointerCapture(e.pointerId); } catch (_) {}
+      const r = zone.getBoundingClientRect();
+      centerX = r.left + r.width / 2;
+      centerY = r.top + r.height / 2;
+      onMove(e);
+      if (!timer) timer = setInterval(stepJoy, 60);
+    });
+    zone.addEventListener('pointermove', (e) => { if (isDraggingJoy) onMove(e); });
+    const onUp = () => {
+      isDraggingJoy = false;
+      if (timer) { clearInterval(timer); timer = null; }
+      thumb.style.left = '50%'; thumb.style.top = '50%';
+      normX = 0; normY = 0;
+      if (fb) fb.innerText = 'JOYSTICK: NEUTRAL';
+    };
+    zone.addEventListener('pointerup', onUp);
+    zone.addEventListener('pointercancel', onUp);
+    zone.addEventListener('lostpointercapture', onUp);
+
+    function onMove(e) {
+      const dx = e.clientX - centerX, dy = e.clientY - centerY;
+      const dist = Math.min(Math.hypot(dx, dy), maxR);
+      const ang = Math.atan2(dy, dx);
+      const tx = Math.cos(ang) * dist, ty = Math.sin(ang) * dist;
+      thumb.style.left = `calc(50% + ${tx.toFixed(1)}px)`;
+      thumb.style.top = `calc(50% + ${ty.toFixed(1)}px)`;
+      normX = Math.abs(tx / maxR) > 0.1 ? (tx / maxR) : 0;
+      normY = Math.abs(ty / maxR) > 0.1 ? -(ty / maxR) : 0;
+      if (fb) fb.innerText = `X: ${(normX * 100).toFixed(0)}% | Y: ${(normY * 100).toFixed(0)}%`;
+    }
+
+    function stepJoy() {
+      if (normX === 0 && normY === 0) return;
+      currentRcYaw = Math.max(0, Math.min(180, currentRcYaw - normX * 3.6));
+      currentRcPitch = Math.max(0, Math.min(175, currentRcPitch + normY * 3.6));
+      updateReticle(currentRcYaw, currentRcPitch);
+      sendBleRaw(`rc:${currentRcYaw.toFixed(1)},${currentRcPitch.toFixed(1)}`);
+    }
+  })();
+</script>
+</body>
+</html>
