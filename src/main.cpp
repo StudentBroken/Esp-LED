@@ -25,6 +25,7 @@ uint8_t cfgCommMode = DEFAULT_COMM_MODE;   // 0 = COMM_MODE_BLE (Default), 1 = C
 int8_t pendingCommModeSwitch = -1;
 unsigned long pendingCommSwitchAtMs = 0;
 bool suitStealthMode = false;              // True = All LEDs OFF (synced with Webshooter & Gimbal)
+bool cfgSwapRG = false;                    // Runtime R<->G channel swap override (persisted in NVS)
 
 // ==============================================================================
 // Dynamic Suit Mesh LED Settings (Synced with Gimbal Hub / BLE App & NVS)
@@ -154,8 +155,13 @@ void initMosfetRgbPwm() {
 }
 
 void writeMosfetRgb(uint8_t r, uint8_t g, uint8_t b) {
-  ledcWrite(LEDC_CH_R, r);
-  ledcWrite(LEDC_CH_G, g);
+  if (cfgSwapRG) {
+    ledcWrite(LEDC_CH_R, g);
+    ledcWrite(LEDC_CH_G, r);
+  } else {
+    ledcWrite(LEDC_CH_R, r);
+    ledcWrite(LEDC_CH_G, g);
+  }
   ledcWrite(LEDC_CH_B, b);
 }
 
@@ -627,6 +633,11 @@ void handleBleCommandString(const String &cmdStr) {
     pendingCommSwitchAtMs = millis() + 250;
   } else if (cmdStr == "cmd:role_toggle") {
     cycleNodeRole();
+  } else if (cmdStr == "cmd:swap_rg") {
+    cfgSwapRG = !cfgSwapRG;
+    prefs.putBool("swap_rg", cfgSwapRG);
+    triggerRgbFlash(255, 0, 0, 350);
+    Serial.printf("[BLE CMD] Toggled R<->G Channel Swap: %s\n", cfgSwapRG ? "SWAPPED" : "DEFAULT (R=GPIO6, G=GPIO5)");
   } else if (cmdStr == "cmd:deploy") {
     sendGimbalActionFromNode(CMD_DEPLOY);
   } else if (cmdStr == "cmd:fold") {
@@ -888,6 +899,14 @@ void processSerialCommands() {
         cycleNodeRole();
         break;
 
+      case 'c':
+      case 'C':
+        cfgSwapRG = !cfgSwapRG;
+        prefs.putBool("swap_rg", cfgSwapRG);
+        triggerRgbFlash(255, 0, 0, 350);
+        Serial.printf("[CONFIG] R<->G Channel Swap: %s\n", cfgSwapRG ? "SWAPPED" : "DEFAULT (R=GPIO6, G=GPIO5)");
+        break;
+
       case 'x':
       case 'X':
         suitStealthMode = !suitStealthMode;
@@ -940,6 +959,7 @@ void setup() {
   cfgNodeId = prefs.getUChar("node_id", DEFAULT_NODE_ID);
   cfgCommMode = prefs.getUChar("comm_v2", DEFAULT_COMM_MODE);
   suitStealthMode = prefs.getBool("stealth", false);
+  cfgSwapRG = prefs.getBool("swap_rg", false);
   cfgStandbyR = prefs.getUChar("sr", cfgStandbyR);
   cfgStandbyG = prefs.getUChar("sg", cfgStandbyG);
   cfgStandbyB = prefs.getUChar("sb", cfgStandbyB);

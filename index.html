@@ -1298,9 +1298,14 @@
             <button type="button" class="swatch" aria-label="Orange" style="background:#FF6D00;" onclick="setDeployedColor(255,109,0,'#FF6D00',true)"></button>
             <button type="button" class="swatch" aria-label="Cyan" style="background:#00F0FF;" onclick="setDeployedColor(0,240,255,'#00F0FF',true)"></button>
             <button type="button" class="swatch" aria-label="Blue" style="background:#003CFF;" onclick="setDeployedColor(0,60,255,'#003CFF',true)"></button>
-            <button type="button" class="swatch" aria-label="Lime" style="background:#76FF03;" onclick="setDeployedColor(118,255,3,'#76FF03',true)"></button>
+            <button type="button" class="swatch" aria-label="Lime" style="background:#00FF00;" onclick="setDeployedColor(0,255,0,'#00FF00',true)"></button>
             <button type="button" class="swatch" aria-label="Purple" style="background:#B026FF;" onclick="setDeployedColor(176,38,255,'#B026FF',true)"></button>
             <input type="color" id="deployedPicker" class="color-picker-input" value="#ff0000" oninput="onCustomColorPick('deployed', this.value)">
+          </div>
+          <div style="margin-top:8px;">
+            <button type="button" class="pattern-btn" id="btnSwapRg" style="width:100%;min-height:42px;border-color:rgba(255,183,0,0.4);color:var(--amber);" onclick="toggleRgWireSwap()">
+              &#128260; VEST R&harr;G WIRE SWAP: <span id="rgSwapLbl">OFF (DEFAULT)</span> &mdash; TAP IF ARMED SHOWS GREEN
+            </button>
           </div>
         </div>
 
@@ -1568,6 +1573,7 @@
   // Suit LED & Animation State
   let standbyR = 255, standbyG = 255, standbyB = 255;
   let deployedR = 255, deployedG = 0, deployedB = 0;
+  let swapRgWire = false;
   let ledPattern = 0;
   let armedPattern = 5;
   let waveMode = 1;
@@ -1948,6 +1954,16 @@
     saveLedSettings();
   }
 
+  function toggleRgWireSwap() {
+    swapRgWire = !swapRgWire;
+    const lbl = document.getElementById('rgSwapLbl');
+    const btn = document.getElementById('btnSwapRg');
+    if (lbl) lbl.innerText = swapRgWire ? 'ON (R↔G SWAPPED)' : 'OFF (DEFAULT)';
+    if (btn) btn.classList.toggle('active', swapRgWire);
+    sendBleRaw('cmd:swap_rg');
+    saveLedSettings();
+  }
+
   async function saveLedSettings(silentToast = false) {
     const minB = document.getElementById('minBrightSlider').value;
     const maxB = document.getElementById('maxBrightSlider').value;
@@ -1955,7 +1971,12 @@
     const armPer = document.getElementById('armedPeriodSlider').value;
     const waveOff = document.getElementById('waveOffsetSlider').value;
 
-    const blePayload = `L:${standbyR},${standbyG},${standbyB},${deployedR},${deployedG},${deployedB},${ledPattern},${armedPattern},${waveMode},${waveOff},${minB},${maxB},${period},${armPer},${overrideState}`;
+    const outSr = swapRgWire ? standbyG : standbyR;
+    const outSg = swapRgWire ? standbyR : standbyG;
+    const outDr = swapRgWire ? deployedG : deployedR;
+    const outDg = swapRgWire ? deployedR : deployedG;
+
+    const blePayload = `L:${outSr},${outSg},${standbyB},${outDr},${outDg},${deployedB},${ledPattern},${armedPattern},${waveMode},${waveOff},${minB},${maxB},${period},${armPer},${overrideState}`;
     if (await sendBleRaw(blePayload)) {
       if (!silentToast) showToast('Suit Mesh Synced via BLE!');
       return;
@@ -1964,8 +1985,8 @@
     if (silentToast) return;
     const params = new URLSearchParams({
       action: 'led',
-      sr: standbyR, sg: standbyG, sb: standbyB,
-      dr: deployedR, dg: deployedG, db: deployedB,
+      sr: outSr, sg: outSg, sb: standbyB,
+      dr: outDr, dg: outDg, db: deployedB,
       pattern: ledPattern, arm_pat: armedPattern,
       wave_mode: waveMode, wave_off: waveOff,
       min_b: minB, max_b: maxB,

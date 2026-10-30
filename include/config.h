@@ -25,8 +25,8 @@
 //   - 5V Power Supply (+)                            -> LED Strip +5V Common Anode
 //   - Logic: Active HIGH (Duty 0 = LOW/OFF, Duty 255 = HIGH/Full ON)
 // ------------------------------------------------------------------------------
-#define PIN_MOSFET_R              5           // GPIO 5: Red MOSFET Pad B (LEDC Ch 0)
-#define PIN_MOSFET_G              6           // GPIO 6: Green MOSFET Pad B (LEDC Ch 1)
+#define PIN_MOSFET_R              6           // GPIO 6: Red MOSFET Pad B (LEDC Ch 0) - Matches standard +5V/G/R/B strip wiring
+#define PIN_MOSFET_G              5           // GPIO 5: Green MOSFET Pad B (LEDC Ch 1)
 #define PIN_MOSFET_B              7           // GPIO 7: Blue MOSFET Pad B (LEDC Ch 2)
 
 #define LEDC_CH_R                 0           // Hardware PWM Channel 0 (Red)
